@@ -1,0 +1,105 @@
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #FAF4EF 0%, #F5EBE0 50%, #FAF4EF 100%);
+}
+
+.hero-background {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  width: 120%;
+  height: 120%;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(183, 110, 121, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(156, 175, 136, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+  filter: blur(40px);
+  will-change: transform;
+  z-index: 0;
+}
+
+.petals-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.petal {
+  position: absolute;
+  opacity: 0.6;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(128, 0, 0, 0.15));
+  will-change: transform;
+}
+
+.hero-foreground {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  padding: 2rem;
+  will-change: transform;
+}
+
+.hero-content {
+  text-align: center;
+  z-index: 3;
+}
+
+.hero-title {
+  font-family: var(--font-accent);
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-shadow: 2px 2px 4px rgba(128, 0, 0, 0.1);
+}
+
+.hero-subtitle {
+  font-family: var(--font-primary);
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  color: var(--color-accent-2);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.8;
+}
+
+.hero-photo-frame {
+  margin-top: 2rem;
+  filter: drop-shadow(0 10px 30px rgba(128, 0, 0, 0.2));
+}
+
+.photo-placeholder {
+  background: var(--color-secondary);
+  border: 3px dashed var(--color-accent-2);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .hero-foreground {
+    gap: 2rem;
+    padding: 1rem;
+  }
+  
+  .hero-photo-frame {
+    margin-top: 1rem;
+  }
+}
+

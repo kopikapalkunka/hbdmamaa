@@ -1,0 +1,110 @@
+.closing-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(180deg, #FAF4EF 0%, #F5EBE0 50%, #E8D8C8 100%);
+  overflow: hidden;
+}
+
+.closing-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(ellipse at center, rgba(212, 175, 55, 0.1) 0%, transparent 60%),
+    radial-gradient(ellipse at top right, rgba(183, 110, 121, 0.08) 0%, transparent 50%);
+  z-index: 0;
+}
+
+.petals-drifting {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.drifting-petal {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 2px 4px rgba(128, 0, 0, 0.1));
+}
+
+.closing-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.closing-photo-frame {
+  margin-bottom: 2rem;
+  filter: drop-shadow(0 15px 40px rgba(128, 0, 0, 0.25));
+}
+
+.photo-placeholder-large {
+  background: var(--color-secondary);
+  border: 3px dashed var(--color-accent-2);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closing-title {
+  font-family: var(--font-accent);
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  color: var(--color-primary);
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 2px 2px 6px rgba(128, 0, 0, 0.15);
+}
+
+.closing-text {
+  font-family: var(--font-primary);
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  color: var(--color-accent-2);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.closing-heart {
+  margin-top: 2rem;
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@media (max-width: 768px) {
+  .closing-section {
+    padding: 3rem 1rem;
+  }
+  
+  .closing-content {
+    gap: 1.5rem;
+  }
+}
+

@@ -1,0 +1,219 @@
+.interactive-garden-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #FAF4EF 0%, #E8D8C8 50%, #FAF4EF 100%);
+  overflow: hidden;
+}
+
+.garden-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(156, 175, 136, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(183, 110, 121, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+  z-index: 0;
+}
+
+.garden-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1000px;
+  text-align: center;
+}
+
+.garden-title {
+  font-family: var(--font-accent);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-shadow: 2px 2px 6px rgba(128, 0, 0, 0.1);
+}
+
+.garden-subtitle {
+  font-family: var(--font-primary);
+  font-size: 1.2rem;
+  color: var(--color-accent-2);
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+.garden-canvas {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--color-secondary);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(128, 0, 0, 0.2);
+  overflow: hidden;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.garden-svg {
+  width: 100%;
+  height: auto;
+  min-height: 500px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.05));
+}
+
+.flower-interactive {
+  transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 3px 8px rgba(128, 0, 0, 0.15));
+}
+
+.flower-interactive:hover {
+  filter: drop-shadow(0 8px 20px rgba(128, 0, 0, 0.3));
+}
+
+.flower-interactive:active {
+  filter: drop-shadow(0 2px 6px rgba(128, 0, 0, 0.2));
+}
+
+.pot-interactive {
+  user-select: none;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.2));
+}
+
+.pot-interactive:hover {
+  filter: drop-shadow(0 6px 15px rgba(128, 0, 0, 0.3));
+}
+
+.flower-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  pointer-events: none;
+  perspective: 1000px;
+}
+
+.message-popup {
+  background: linear-gradient(135deg, #FAF4EF 0%, #F5EBE0 100%);
+  border: 2px solid var(--color-primary);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.3),
+    0 5px 15px rgba(128, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  max-width: 320px;
+  position: relative;
+  overflow: hidden;
+}
+
+.message-popup::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(183, 110, 121, 0.1) 0%, transparent 70%);
+  animation: rotate 8s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.message-popup p {
+  font-family: var(--font-primary);
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  text-align: center;
+  margin: 0;
+  font-style: italic;
+  line-height: 1.8;
+  position: relative;
+  z-index: 1;
+}
+
+.message-popup svg {
+  display: block;
+  margin: 0 auto 0.8rem;
+  filter: drop-shadow(0 2px 4px rgba(128, 0, 0, 0.2));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(5deg); }
+}
+
+.growing-plant {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.2));
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced visual effects */
+.garden-canvas::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(183, 110, 121, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  border-radius: 20px;
+  z-index: 0;
+}
+
+.garden-svg {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .interactive-garden-section {
+    padding: 3rem 1rem;
+  }
+  
+  .garden-canvas {
+    padding: 1rem;
+  }
+  
+  .garden-svg {
+    min-height: 400px;
+  }
+  
+  .message-popup {
+    max-width: 280px;
+    padding: 1.5rem 2rem;
+  }
+  
+  .message-popup p {
+    font-size: 1rem;
+  }
+}
+
+/* Smooth scrolling enhancement */
+@media (prefers-reduced-motion: no-preference) {
+  .flower-interactive {
+    will-change: transform;
+  }
+}
