@@ -40,7 +40,12 @@ function App() {
   const handleMusicStart = () => {
     // Initialize background music with the actual music file
     // Use public path so it works in both development and production
-    const musicPath = '/music/Happy Birthday Song Music Box.mp3';
+    // Try multiple paths to handle different deployment scenarios
+    const basePath = import.meta.env.BASE_URL || '/';
+    const musicPath = `${basePath}music/Happy Birthday Song Music Box.mp3`.replace('//', '/');
+    
+    console.log('Attempting to load music from:', musicPath);
+    console.log('Base URL:', basePath);
     
     const sound = new Howl({
       src: [musicPath],
@@ -50,18 +55,19 @@ function App() {
       preload: true,
       onplay: () => {
         setMusicPlaying(true);
-        console.log('Background music started playing');
+        console.log('✅ Background music started playing successfully!');
       },
       onload: () => {
-        console.log('Music file loaded successfully');
+        console.log('✅ Music file loaded successfully');
       },
       onloaderror: (id, error) => {
-        console.warn('Background music file not found:', error);
-        console.warn('Tried to load from:', musicPath);
+        console.error('❌ Background music file not found:', error);
+        console.error('Tried to load from:', musicPath);
+        console.error('Full URL would be:', window.location.origin + musicPath);
         setMusicPlaying(false);
       },
       onplayerror: (id, error) => {
-        console.warn('Error playing background music:', error);
+        console.error('❌ Error playing background music:', error);
         setMusicPlaying(false);
       }
     });
