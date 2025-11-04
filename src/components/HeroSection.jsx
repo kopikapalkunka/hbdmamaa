@@ -4,10 +4,12 @@ import './HeroSection.css';
 
 const HeroSection = ({ onMusicStart }) => {
   const heroRef = useRef(null);
+  const musicStartedRef = useRef(false);
 
   useEffect(() => {
-    // Start background music when component mounts
-    if (onMusicStart) {
+    // Start background music when component mounts (only once)
+    if (onMusicStart && !musicStartedRef.current) {
+      musicStartedRef.current = true;
       onMusicStart();
     }
 

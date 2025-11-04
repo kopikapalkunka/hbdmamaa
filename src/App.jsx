@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Howl } from 'howler';
 import HeroSection from './components/HeroSection';
 import IntroSection from './components/IntroSection';
@@ -12,40 +12,64 @@ function App() {
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [musicInitialized, setMusicInitialized] = useState(false);
   const backgroundMusicRef = useRef(null);
+  const musicLoadAttempted = useRef(false);
 
   // Handle user interaction to start music (required for autoplay policies)
   useEffect(() => {
     const handleUserInteraction = () => {
-      if (!musicInitialized && backgroundMusicRef.current) {
+      if (backgroundMusicRef.current) {
         const sound = backgroundMusicRef.current;
         if (!sound.playing()) {
-          const soundId = sound.play();
-          if (soundId) {
-            setMusicInitialized(true);
-            console.log('Music started on user interaction');
+          try {
+            const soundId = sound.play();
+            if (soundId) {
+              setMusicInitialized(true);
+              console.log('🎵 Music started on user interaction!');
+              // Remove listeners after successful start
+              document.removeEventListener('click', handleUserInteraction);
+              document.removeEventListener('touchstart', handleUserInteraction);
+            }
+          } catch (error) {
+            console.log('⚠️ Could not start music:', error);
           }
         } else {
+          // Already playing
           setMusicInitialized(true);
+          document.removeEventListener('click', handleUserInteraction);
+          document.removeEventListener('touchstart', handleUserInteraction);
         }
-        // Remove listeners after first interaction
-        document.removeEventListener('click', handleUserInteraction);
-        document.removeEventListener('touchstart', handleUserInteraction);
       }
     };
 
-    // Only add listeners if music hasn't been initialized
-    if (!musicInitialized) {
-      document.addEventListener('click', handleUserInteraction, { once: true });
-      document.addEventListener('touchstart', handleUserInteraction, { once: true });
+    // Only add listeners if music hasn't started playing yet
+    if (!musicPlaying && backgroundMusicRef.current) {
+      // Use capture phase to catch interactions early
+      document.addEventListener('click', handleUserInteraction, { capture: true, once: true });
+      document.addEventListener('touchstart', handleUserInteraction, { capture: true, once: true });
     }
 
     return () => {
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction, { capture: true });
+      document.removeEventListener('touchstart', handleUserInteraction, { capture: true });
     };
-  }, [musicInitialized]);
+  }, [musicPlaying]);
 
-  const handleMusicStart = () => {
+  const handleMusicStart = useCallback(() => {
+    // Prevent multiple initializations - check both refs
+    if (musicLoadAttempted.current) {
+      console.log('⏭️ Music initialization already attempted, skipping...');
+      return;
+    }
+    
+    if (backgroundMusicRef.current) {
+      console.log('⏭️ Music already initialized (sound exists), skipping...');
+      return;
+    }
+    
+    // Set flag immediately to prevent race conditions
+    musicLoadAttempted.current = true;
+    console.log('🎵 Starting music initialization (first time)...');
+    
     // Initialize background music with the actual music file
     // Use public path so it works in both development and production
     const basePath = import.meta.env.BASE_URL || '/';
@@ -64,6 +88,7 @@ function App() {
       preload: true,
       onplay: () => {
         setMusicPlaying(true);
+        setMusicInitialized(true);
         console.log('✅ Background music started playing successfully!');
       },
       onload: () => {
@@ -74,34 +99,46 @@ function App() {
         console.error('Tried to load from:', musicPath);
         console.error('Full URL would be:', window.location.origin + musicPath);
         setMusicPlaying(false);
+        musicLoadAttempted.current = false; // Allow retry
       },
       onplayerror: (id, error) => {
-        console.error('❌ Error playing background music:', error);
-        setMusicPlaying(false);
+        // Don't log autoplay restrictions as errors - this is normal browser behavior
+        // Autoplay is blocked, music will play on user interaction
+        const errorMsg = error?.message || error?.toString() || String(error) || '';
+        const isAutoplayRestriction = 
+          errorMsg.includes('user interaction') ||
+          errorMsg.includes('Playback was unable to start') ||
+          errorMsg.includes('autoplay') ||
+          errorMsg.includes('not allowed');
+        
+        // Silently ignore autoplay restrictions - they're expected
+        if (!isAutoplayRestriction && errorMsg) {
+          console.log('⚠️ Playback issue:', errorMsg);
+        }
+        // Otherwise, don't log anything - it's normal
       }
     });
     
-    // Try to play the music
+    // Store the sound reference
+    backgroundMusicRef.current = sound;
+    
+    // Try to play the music (will likely fail due to autoplay restrictions)
     // Howler.js play() returns a sound ID (number), not a Promise
     try {
       const soundId = sound.play();
       if (soundId) {
-        // Sound started playing
-        setMusicInitialized(true);
-        console.log('Music autoplay successful, sound ID:', soundId);
+        // Sound started playing (autoplay worked!)
+        console.log('🎉 Music autoplay successful, sound ID:', soundId);
       } else {
-        // Play failed (likely autoplay restriction)
-        console.log('Music autoplay was prevented (normal in some browsers)');
-        console.log('Music will play on user interaction');
-        setMusicInitialized(false); // Will be set to true on first user interaction
+        // Play failed (likely autoplay restriction - this is normal)
+        console.log('📢 Music autoplay was prevented (normal in browsers)');
+        console.log('👆 Music will play on first user click/touch');
       }
     } catch (error) {
-      console.warn('Error attempting to play music:', error);
-      setMusicInitialized(false); // Will be set to true on first user interaction
+      console.log('📢 Music autoplay prevented:', error.message);
+      console.log('👆 Music will play on first user click/touch');
     }
-    
-    backgroundMusicRef.current = sound;
-  };
+  }, []); // Empty deps - this function should never change
 
   const handleMusicEnd = () => {
     if (backgroundMusicRef.current) {
@@ -158,9 +195,9 @@ function App() {
           zIndex: 1000
         }}>
           🎵 Music Playing
-        </div>
+      </div>
       )}
-    </div>
+      </div>
   );
 }
 
