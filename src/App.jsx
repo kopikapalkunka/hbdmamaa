@@ -6,6 +6,7 @@ import GallerySection from './components/GallerySection';
 import MessagesSection from './components/MessagesSection';
 import InteractiveGarden from './components/InteractiveGarden';
 import ClosingSection from './components/ClosingSection';
+import birthdayMusic from './assets/music/Happy Birthday Song Music Box.mp3';
 import './App.css';
 
 function App() {
@@ -13,34 +14,28 @@ function App() {
   const backgroundMusicRef = useRef(null);
 
   const handleMusicStart = () => {
-    // Initialize background music (placeholder - replace with actual music file)
-    // Since we don't have an actual audio file, we'll create a silent placeholder
-    // In production, replace this with your actual music file path
-    const musicUrl = '/src/assets/music/background.mp3'; // Update this path
-    
-    // For now, we'll just set the state
-    // In production, uncomment the following:
-    /*
+    // Initialize background music with the actual music file
     const sound = new Howl({
-      src: [musicUrl],
+      src: [birthdayMusic],
       html5: true,
-      volume: 0.4,
+      volume: 0.5,
       loop: true,
-      onplay: () => setMusicPlaying(true),
-      onloaderror: () => {
-        console.warn('Background music file not found. Please add your music file to /src/assets/music/background.mp3');
+      onplay: () => {
+        setMusicPlaying(true);
+        console.log('Background music started playing');
+      },
+      onloaderror: (id, error) => {
+        console.warn('Background music file not found:', error);
+        setMusicPlaying(false);
+      },
+      onplayerror: (id, error) => {
+        console.warn('Error playing background music:', error);
         setMusicPlaying(false);
       }
     });
     
     sound.play();
     backgroundMusicRef.current = sound;
-    setMusicPlaying(true);
-    */
-    
-    // Placeholder for now
-    setMusicPlaying(true);
-    console.log('Music would start here. Add your background music file to /src/assets/music/background.mp3');
   };
 
   const handleMusicEnd = () => {

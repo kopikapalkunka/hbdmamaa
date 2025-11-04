@@ -12,20 +12,20 @@ const MessagesSection = () => {
   const messages = [
     {
       id: 1,
-      name: "Family Member 1",
-      message: "Happy Birthday! Your love blooms like the most beautiful garden.",
+      name: "Ayah",
+      message: "Mama selamat ulang tahun semoga panjang umur dan sehat selalu .",
       audioUrl: null, // Add audio file path here
     },
     {
       id: 2,
-      name: "Family Member 2",
-      message: "Thank you for planting seeds of love in our hearts every day.",
+      name: "Aku Adek citi",
+      message: "makasih udah nanem benih kebahagiaan ke kami semua.",
       audioUrl: null,
     },
     {
       id: 3,
-      name: "Family Member 3",
-      message: "Your kindness grows like flowers in spring - always blooming.",
+      name: "Kakak",
+      message: "semoga mama selalu diberikan kesehatan dan kebahagiaan selalu.",
       audioUrl: null,
     },
   ];
