@@ -69,8 +69,13 @@ const InteractiveGarden = () => {
     trackMouse: true,
   });
 
-  // Sunflower component - Enhanced
-  const Sunflower = ({ x, y, size, delay }) => (
+  // Sunflower component - Enhanced & Optimized for Mobile
+  const Sunflower = ({ x, y, size, delay }) => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const petalCount = isMobile ? 12 : 16; // Reduce petals on mobile
+    const innerPetalCount = isMobile ? 8 : 12;
+    
+    return (
     <g>
       <defs>
         <radialGradient id={`sunflowerGrad${x}`} cx="30%" cy="30%">
@@ -85,21 +90,20 @@ const InteractiveGarden = () => {
         </radialGradient>
       </defs>
       
-      {/* Shadow layer */}
-      <motion.circle
-        cx={x + 2}
-        cy={y + 3}
-        r={35 * size}
-        fill="#000000"
-        opacity="0.1"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.1 }}
-        transition={{ delay: delay, duration: 0.5 }}
-      />
+      {/* Shadow layer - static on mobile */}
+      {!isMobile && (
+        <circle
+          cx={x + 2}
+          cy={y + 3}
+          r={35 * size}
+          fill="#000000"
+          opacity="0.1"
+        />
+      )}
       
       {/* Outer petals */}
-      {[...Array(16)].map((_, i) => {
-        const angle = (i * 360 / 16) * (Math.PI / 180);
+      {[...Array(petalCount)].map((_, i) => {
+        const angle = (i * 360 / petalCount) * (Math.PI / 180);
         const petalX = x + Math.cos(angle) * 28 * size;
         const petalY = y + Math.sin(angle) * 28 * size;
         
@@ -113,7 +117,7 @@ const InteractiveGarden = () => {
             fill={`url(#sunflowerGrad${x})`}
             stroke="#B8860B"
             strokeWidth="1.5"
-            transform={`rotate(${i * 22.5} ${petalX} ${petalY})`}
+            transform={`rotate(${i * (360 / petalCount)} ${petalX} ${petalY})`}
             filter="drop-shadow(0 2px 3px rgba(0,0,0,0.2))"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -127,8 +131,8 @@ const InteractiveGarden = () => {
       })}
       
       {/* Inner petals */}
-      {[...Array(12)].map((_, i) => {
-        const angle = ((i * 360 / 12) + 15) * (Math.PI / 180);
+      {[...Array(innerPetalCount)].map((_, i) => {
+        const angle = ((i * 360 / innerPetalCount) + 15) * (Math.PI / 180);
         const petalX = x + Math.cos(angle) * 18 * size;
         const petalY = y + Math.sin(angle) * 18 * size;
         
@@ -142,7 +146,7 @@ const InteractiveGarden = () => {
             fill="#FFE66D"
             stroke="#DAA520"
             strokeWidth="1"
-            transform={`rotate(${i * 30 + 15} ${petalX} ${petalY})`}
+            transform={`rotate(${i * (360 / innerPetalCount) + 15} ${petalX} ${petalY})`}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ 
@@ -167,8 +171,8 @@ const InteractiveGarden = () => {
         transition={{ delay: delay + 0.6, duration: 0.6, ease: "easeOut" }}
       />
       
-      {/* Fibonacci spiral pattern */}
-      {[...Array(40)].map((_, i) => {
+      {/* Fibonacci spiral pattern - reduced on mobile */}
+      {[...Array(isMobile ? 20 : 40)].map((_, i) => {
         const goldenAngle = Math.PI * (3 - Math.sqrt(5));
         const angle = i * goldenAngle;
         const radius = Math.sqrt(i) * 2.5 * size;
@@ -190,7 +194,8 @@ const InteractiveGarden = () => {
         );
       })}
     </g>
-  );
+    );
+  };
 
   // Rose component - Enhanced
   const Rose = ({ x, y, size, delay }) => (
@@ -663,19 +668,22 @@ const InteractiveGarden = () => {
                 style={{ cursor: 'pointer' }}
                 onClick={() => handleFlowerClick(flower)}
                 whileHover={{ 
-                  scale: 1.15,
-                  filter: "drop-shadow(0 8px 16px rgba(128, 0, 0, 0.4))"
+                  scale: 1.1,
                 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.98 }}
                 animate={{
-                  y: [0, -8, 0],
-                  rotate: [0, 2, -2, 0],
+                  y: [0, -5, 0],
+                  rotate: [0, 1.5, -1.5, 0],
                 }}
                 transition={{
-                  duration: 4 + flower.id * 0.3,
+                  duration: 5 + flower.id * 0.5,
                   repeat: Infinity,
                   ease: [0.4, 0, 0.6, 1],
-                  delay: flower.id * 0.4,
+                  delay: flower.id * 0.5,
+                }}
+                style={{
+                  willChange: 'transform',
+                  transformOrigin: `${flower.x}px ${flower.y}px`,
                 }}
               >
                 {/* Flower stem with organic curve - connects from pot */}

@@ -1,0 +1,89 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import './MusicPlayer.css';
+
+const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    if (soundRef?.current) {
+      // Check playing state immediately
+      const checkPlaying = () => {
+        if (soundRef.current?.playing()) {
+          setIsPlaying(true);
+        } else {
+          setIsPlaying(false);
+        }
+      };
+      
+      // Check immediately
+      checkPlaying();
+      
+      // Then check periodically
+      const interval = setInterval(checkPlaying, 500);
+
+      return () => clearInterval(interval);
+    }
+  }, [soundRef]);
+
+  const handleToggle = () => {
+    if (!soundRef?.current) {
+      // If sound isn't loaded yet, show a message
+      console.log('Music is loading... Please wait a moment.');
+      return;
+    }
+
+    const sound = soundRef.current;
+    
+    if (sound.playing()) {
+      sound.pause();
+      setIsPlaying(false);
+      if (onPause) onPause();
+    } else {
+      try {
+        const soundId = sound.play();
+        if (soundId) {
+          setIsPlaying(true);
+          if (onPlay) onPlay();
+        } else {
+          console.log('Could not play music. Please try again.');
+        }
+      } catch (error) {
+        console.log('Error playing music:', error);
+      }
+    }
+  };
+
+  return (
+    <motion.div
+      className="music-player"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <button
+        className="music-play-btn"
+        onClick={handleToggle}
+        aria-label={isPlaying ? 'Pause music' : 'Play music'}
+      >
+        {isPlaying ? (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="6" width="4" height="12" rx="1"/>
+            <rect x="14" y="6" width="4" height="12" rx="1"/>
+          </svg>
+        ) : (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        )}
+      </button>
+      <span className="music-label">
+        {!soundRef?.current ? 'Loading...' : isPlaying ? 'Music Playing' : 'Tap to Play'}
+      </span>
+    </motion.div>
+  );
+};
+
+export default MusicPlayer;
+

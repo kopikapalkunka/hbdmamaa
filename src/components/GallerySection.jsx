@@ -6,15 +6,16 @@ import 'swiper/css/pagination';
 import './GallerySection.css';
 
 const GallerySection = () => {
-  // Sample gallery data - replace with actual photos
-  // Photos should be placed in /public/photos/ directory
-  // Use paths like: '/photos/photo1.jpg'
+  // All photos from public/photos/ directory
+  // Photos are automatically loaded from the public folder
   const galleryItems = [
-    { id: 1, caption: "Beautiful memories together", image: '/photos/photo1.jpg' },
-    { id: 2, caption: "A moment of joy", image: '/photos/photo2.jpg' },
-    { id: 3, caption: "Family love", image: '/photos/photo3.jpg' },
-    { id: 4, caption: "Cherished times", image: '/photos/photo4.jpg' },
-    { id: 5, caption: "Special moments", image: '/photos/photo5.jpg' },
+    { id: 1, caption: "Beautiful memories together", image: '/photos/m.jpeg' },
+    { id: 2, caption: "A moment of joy", image: '/photos/m1.jpeg' },
+    { id: 3, caption: "Family love", image: '/photos/m2.jpeg' },
+    { id: 4, caption: "Cherished times", image: '/photos/m3.jpeg' },
+    { id: 5, caption: "Special moments", image: '/photos/m4.jpeg' },
+    { id: 6, caption: "Precious moments", image: '/photos/m5.jpeg' },
+    { id: 7, caption: "Love and laughter", image: '/photos/m6.jpeg' },
   ];
 
   return (

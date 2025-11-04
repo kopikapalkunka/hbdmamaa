@@ -6,6 +6,7 @@ import GallerySection from './components/GallerySection';
 import MessagesSection from './components/MessagesSection';
 import InteractiveGarden from './components/InteractiveGarden';
 import ClosingSection from './components/ClosingSection';
+import MusicPlayer from './components/MusicPlayer';
 import './App.css';
 
 function App() {
@@ -90,6 +91,10 @@ function App() {
         setMusicPlaying(true);
         setMusicInitialized(true);
         console.log('✅ Background music started playing successfully!');
+      },
+      onpause: () => {
+        setMusicPlaying(false);
+        console.log('⏸️ Music paused');
       },
       onload: () => {
         console.log('✅ Music file loaded successfully');
@@ -181,22 +186,12 @@ function App() {
       <InteractiveGarden />
       <ClosingSection onMusicEnd={handleMusicEnd} />
       
-      {/* Music status indicator (optional, can be removed) */}
-      {musicPlaying && (
-        <div className="music-indicator" style={{ 
-          position: 'fixed', 
-          bottom: '20px', 
-          right: '20px', 
-          background: 'rgba(128, 0, 0, 0.7)', 
-          color: 'white', 
-          padding: '10px 15px', 
-          borderRadius: '20px',
-          fontSize: '12px',
-          zIndex: 1000
-        }}>
-          🎵 Music Playing
-      </div>
-      )}
+      {/* Music Player Button - Always visible */}
+      <MusicPlayer 
+        soundRef={backgroundMusicRef}
+        onPlay={() => setMusicPlaying(true)}
+        onPause={() => setMusicPlaying(false)}
+      />
       </div>
   );
 }
