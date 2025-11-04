@@ -9,29 +9,35 @@ const MessagesSection = () => {
   const [sounds, setSounds] = useState({});
 
   // Sample messages - replace with actual audio clips
+  // Audio files should be placed in /public/voices/ directory
+  // Use paths like: '/voices/message1.mp3'
   const messages = [
     {
       id: 1,
       name: "Ayah",
       message: "Mama selamat ulang tahun semoga panjang umur dan sehat selalu .",
-      audioUrl: null, // Add audio file path here
+      audioUrl: '/voices/ayah.mp3', // Place audio file in /public/voices/
     },
     {
       id: 2,
       name: "Aku Adek citi",
       message: "makasih udah nanem benih kebahagiaan ke kami semua.",
-      audioUrl: null,
+      audioUrl: '/voices/adek.mp3', // Place audio file in /public/voices/
     },
     {
       id: 3,
       name: "Kakak",
       message: "semoga mama selalu diberikan kesehatan dan kebahagiaan selalu.",
-      audioUrl: null,
+      audioUrl: '/voices/kakak.mp3', // Place audio file in /public/voices/
     },
   ];
 
   const playAudio = (message) => {
-    if (!message.audioUrl) {
+    // Use base path for public assets
+    const basePath = import.meta.env.BASE_URL || '/';
+    const audioPath = message.audioUrl ? `${basePath}${message.audioUrl.replace(/^\//, '')}` : null;
+    
+    if (!audioPath) {
       // If no audio URL, just show visual feedback
       alert(message.message);
       return;
@@ -45,11 +51,20 @@ const MessagesSection = () => {
     // Play new sound
     if (!sounds[message.id]) {
       const sound = new Howl({
-        src: [message.audioUrl],
+        src: [audioPath],
         html5: true,
         onend: () => setPlayingId(null),
-        onplayerror: () => {
-          console.error('Audio playback failed');
+        onload: () => {
+          console.log('Voice message loaded:', audioPath);
+        },
+        onloaderror: (id, error) => {
+          console.warn('Voice message not found:', audioPath, error);
+          alert(message.message); // Fallback to text
+          setPlayingId(null);
+        },
+        onplayerror: (id, error) => {
+          console.error('Audio playback failed:', error);
+          alert(message.message); // Fallback to text
           setPlayingId(null);
         }
       });
