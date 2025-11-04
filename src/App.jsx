@@ -17,18 +17,17 @@ function App() {
   const userInteractionHandled = useRef(false); // Track if user interaction already started music
 
   // Keep music playing continuously - monitor and restart if it stops unexpectedly
+  // This ensures background music keeps playing no matter what
   useEffect(() => {
-    if (!backgroundMusicRef.current || !musicInitialized || !musicPlaying) return;
-
-    let restartAttempts = 0;
-    const maxRestartAttempts = 3; // Limit restart attempts
+    if (!backgroundMusicRef.current || !musicInitialized) return;
 
     const checkMusicPlaying = setInterval(() => {
       const sound = backgroundMusicRef.current;
-      if (sound && musicPlaying && !sound.playing() && restartAttempts < maxRestartAttempts) {
-        // Music should be playing but it stopped - restart it
-        restartAttempts++;
-        console.log(`🔄 Music stopped unexpectedly, restarting... (attempt ${restartAttempts})`);
+      if (!sound) return;
+      
+      // If music should be playing but it's not, restart it
+      if (musicPlaying && !sound.playing()) {
+        console.log('🔄 Background music stopped, restarting...');
         try {
           // Resume audio context if needed
           if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
@@ -37,37 +36,75 @@ function App() {
               audioContext.resume().then(() => {
                 const soundId = sound.play();
                 if (soundId) {
-                  console.log('✅ Music restarted successfully');
-                  restartAttempts = 0; // Reset on success
+                  console.log('✅ Background music restarted');
                 }
               }).catch(() => {
-                console.log('⚠️ Could not resume AudioContext');
+                // If resume fails, try playing anyway
+                const soundId = sound.play();
+                if (soundId) {
+                  console.log('✅ Background music restarted (after resume failure)');
+                }
               });
             } else {
               const soundId = sound.play();
               if (soundId) {
-                console.log('✅ Music restarted successfully');
-                restartAttempts = 0; // Reset on success
+                console.log('✅ Background music restarted');
               }
             }
           } else {
             const soundId = sound.play();
             if (soundId) {
-              console.log('✅ Music restarted successfully');
-              restartAttempts = 0; // Reset on success
+              console.log('✅ Background music restarted');
             }
           }
         } catch (error) {
-          console.log('⚠️ Could not restart music:', error);
+          console.log('⚠️ Could not restart music, will retry:', error);
         }
-      } else if (sound && sound.playing()) {
-        // Music is playing, reset attempts
-        restartAttempts = 0;
       }
-    }, 2000); // Check every 2 seconds (less aggressive)
+    }, 1000); // Check every second to ensure continuous playback
 
     return () => clearInterval(checkMusicPlaying);
   }, [musicPlaying, musicInitialized]);
+
+  // Auto-resume audio context on any user interaction to keep music playing
+  useEffect(() => {
+    if (!backgroundMusicRef.current || !musicInitialized) return;
+
+    const handleAnyInteraction = async () => {
+      const sound = backgroundMusicRef.current;
+      if (!sound) return;
+
+      // Resume audio context if suspended
+      if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
+        const audioContext = sound._sounds[0]._node.context;
+        if (audioContext && audioContext.state === 'suspended') {
+          try {
+            await audioContext.resume();
+            // If music should be playing but isn't, start it
+            if (musicPlaying && !sound.playing()) {
+              const soundId = sound.play();
+              if (soundId) {
+                console.log('✅ Background music resumed after user interaction');
+              }
+            }
+          } catch (error) {
+            // Silently handle - AudioContext resume errors are common
+          }
+        }
+      }
+    };
+
+    // Listen to all user interactions to keep audio context active
+    document.addEventListener('click', handleAnyInteraction, { passive: true });
+    document.addEventListener('touchstart', handleAnyInteraction, { passive: true });
+    document.addEventListener('scroll', handleAnyInteraction, { passive: true });
+
+    return () => {
+      document.removeEventListener('click', handleAnyInteraction);
+      document.removeEventListener('touchstart', handleAnyInteraction);
+      document.removeEventListener('scroll', handleAnyInteraction);
+    };
+  }, [musicInitialized, musicPlaying]);
 
   // Handle user interaction to start music (required for autoplay policies)
   useEffect(() => {
@@ -186,9 +223,13 @@ function App() {
         }
       },
       onpause: () => {
-        // Only update state if user explicitly paused, not if it stopped due to error
-        console.log('⏸️ Music paused');
-        // Don't automatically set musicPlaying to false - let user control it
+        // Don't update state - keep musicPlaying true so monitoring can restart it
+        // This ensures background music continues even if browser pauses it
+        console.log('⏸️ Music paused (will auto-resume)');
+      },
+      onstop: () => {
+        // If music stops, don't update state - monitoring will restart it
+        console.log('⏹️ Music stopped (will auto-restart)');
       },
       onload: () => {
         console.log('✅ Music file loaded successfully');

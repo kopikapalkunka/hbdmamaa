@@ -50,20 +50,40 @@ const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
     }
     
     if (sound.playing()) {
-      // User wants to pause - but only pause if they explicitly click pause
+      // User wants to pause - pause the music
       sound.pause();
       setIsPlaying(false);
       if (onPause) onPause();
+      console.log('⏸️ Music paused by user');
     } else {
-      // User wants to play - ensure it stays playing
+      // User wants to play - start it and keep it playing as background music
       try {
         const soundId = sound.play();
         if (soundId) {
           setIsPlaying(true);
           if (onPlay) onPlay();
-          console.log('🎵 Music playing - will continue as background music');
+          console.log('🎵 Background music started - will play continuously');
         } else {
           console.log('Could not play music. Please try again.');
+          // Retry after a short delay
+          setTimeout(async () => {
+            try {
+              if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
+                const audioContext = sound._sounds[0]._node.context;
+                if (audioContext && audioContext.state === 'suspended') {
+                  await audioContext.resume();
+                }
+              }
+              const retryId = sound.play();
+              if (retryId) {
+                setIsPlaying(true);
+                if (onPlay) onPlay();
+                console.log('🎵 Background music started after retry - will play continuously');
+              }
+            } catch (retryError) {
+              console.log('Retry failed:', retryError);
+            }
+          }, 100);
         }
       } catch (error) {
         console.log('Error playing music:', error);
@@ -76,7 +96,7 @@ const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
               if (retryId) {
                 setIsPlaying(true);
                 if (onPlay) onPlay();
-                console.log('🎵 Music playing after retry - will continue as background music');
+                console.log('🎵 Background music started after context resume - will play continuously');
               }
             });
           }
