@@ -42,6 +42,7 @@ const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
       if (audioContext && audioContext.state === 'suspended') {
         try {
           await audioContext.resume();
+          console.log('✅ AudioContext resumed in music player');
         } catch (error) {
           console.log('Could not resume audio context:', error);
         }
@@ -49,15 +50,18 @@ const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
     }
     
     if (sound.playing()) {
+      // User wants to pause - but only pause if they explicitly click pause
       sound.pause();
       setIsPlaying(false);
       if (onPause) onPause();
     } else {
+      // User wants to play - ensure it stays playing
       try {
         const soundId = sound.play();
         if (soundId) {
           setIsPlaying(true);
           if (onPlay) onPlay();
+          console.log('🎵 Music playing - will continue as background music');
         } else {
           console.log('Could not play music. Please try again.');
         }
@@ -72,6 +76,7 @@ const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
               if (retryId) {
                 setIsPlaying(true);
                 if (onPlay) onPlay();
+                console.log('🎵 Music playing after retry - will continue as background music');
               }
             });
           }

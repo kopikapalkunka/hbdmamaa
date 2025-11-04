@@ -110,7 +110,7 @@ const HeroSection = ({ onMusicStart }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 1.2, ease: [0.34, 1.56, 0.64, 1] }}
           >
-            Happy Birthday, Mom 🌷
+            Happy Birthday, Mama 🌷
           </motion.h1>
           <motion.p
             className="hero-subtitle"

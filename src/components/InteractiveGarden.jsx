@@ -665,7 +665,11 @@ const InteractiveGarden = () => {
               <motion.g
                 key={flower.id}
                 className="flower-interactive"
-                style={{ cursor: 'pointer' }}
+                style={{ 
+                  cursor: 'pointer',
+                  willChange: 'transform',
+                  transformOrigin: `${flower.x}px ${flower.y}px`,
+                }}
                 onClick={() => handleFlowerClick(flower)}
                 whileHover={{ 
                   scale: 1.1,
@@ -680,10 +684,6 @@ const InteractiveGarden = () => {
                   repeat: Infinity,
                   ease: [0.4, 0, 0.6, 1],
                   delay: flower.id * 0.5,
-                }}
-                style={{
-                  willChange: 'transform',
-                  transformOrigin: `${flower.x}px ${flower.y}px`,
                 }}
               >
                 {/* Flower stem with organic curve - connects from pot */}

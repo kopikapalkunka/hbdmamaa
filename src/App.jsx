@@ -15,6 +15,47 @@ function App() {
   const backgroundMusicRef = useRef(null);
   const musicLoadAttempted = useRef(false);
 
+  // Keep music playing continuously - monitor and restart if it stops unexpectedly
+  useEffect(() => {
+    if (!backgroundMusicRef.current || !musicInitialized) return;
+
+    const checkMusicPlaying = setInterval(() => {
+      const sound = backgroundMusicRef.current;
+      if (sound && musicPlaying && !sound.playing()) {
+        // Music should be playing but it stopped - restart it
+        console.log('🔄 Music stopped unexpectedly, restarting...');
+        try {
+          // Resume audio context if needed
+          if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
+            const audioContext = sound._sounds[0]._node.context;
+            if (audioContext && audioContext.state === 'suspended') {
+              audioContext.resume().then(() => {
+                const soundId = sound.play();
+                if (soundId) {
+                  console.log('✅ Music restarted successfully');
+                }
+              });
+            } else {
+              const soundId = sound.play();
+              if (soundId) {
+                console.log('✅ Music restarted successfully');
+              }
+            }
+          } else {
+            const soundId = sound.play();
+            if (soundId) {
+              console.log('✅ Music restarted successfully');
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ Could not restart music:', error);
+        }
+      }
+    }, 1000); // Check every second
+
+    return () => clearInterval(checkMusicPlaying);
+  }, [musicPlaying, musicInitialized]);
+
   // Handle user interaction to start music (required for autoplay policies)
   useEffect(() => {
     const handleUserInteraction = async () => {
@@ -41,9 +82,10 @@ function App() {
               setMusicInitialized(true);
               setMusicPlaying(true);
               console.log('🎵 Music started on user interaction!');
-              // Remove listeners after successful start
+              // Remove listeners after successful start - music will keep playing
               document.removeEventListener('click', handleUserInteraction);
               document.removeEventListener('touchstart', handleUserInteraction);
+              document.removeEventListener('scroll', handleUserInteraction);
             }
           } catch (error) {
             console.log('⚠️ Could not start music:', error);
@@ -69,24 +111,38 @@ function App() {
             }, 100);
           }
         } else {
-          // Already playing
+          // Already playing - just ensure audio context is active
           setMusicInitialized(true);
+          if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
+            const audioContext = sound._sounds[0]._node.context;
+            if (audioContext && audioContext.state === 'suspended') {
+              try {
+                await audioContext.resume();
+              } catch (error) {
+                console.log('⚠️ Could not resume AudioContext:', error);
+              }
+            }
+          }
           document.removeEventListener('click', handleUserInteraction);
           document.removeEventListener('touchstart', handleUserInteraction);
+          document.removeEventListener('scroll', handleUserInteraction);
         }
       }
     };
 
     // Only add listeners if music hasn't started playing yet
     if (!musicPlaying && backgroundMusicRef.current) {
-      // Use capture phase to catch interactions early
-      document.addEventListener('click', handleUserInteraction, { capture: true, once: true });
-      document.addEventListener('touchstart', handleUserInteraction, { capture: true, once: true });
+      // Use capture phase to catch interactions early - but don't use 'once' so it can catch scroll too
+      document.addEventListener('click', handleUserInteraction, { capture: true });
+      document.addEventListener('touchstart', handleUserInteraction, { capture: true });
+      // Also listen to scroll events to resume audio context if needed
+      document.addEventListener('scroll', handleUserInteraction, { capture: true, passive: true });
     }
 
     return () => {
       document.removeEventListener('click', handleUserInteraction, { capture: true });
       document.removeEventListener('touchstart', handleUserInteraction, { capture: true });
+      document.removeEventListener('scroll', handleUserInteraction, { capture: true });
     };
   }, [musicPlaying]);
 
@@ -128,9 +184,21 @@ function App() {
         setMusicInitialized(true);
         console.log('✅ Background music started playing successfully!');
       },
+      onend: () => {
+        // Music ended - restart it immediately (shouldn't happen with loop, but safety)
+        if (backgroundMusicRef.current && backgroundMusicRef.current.loop()) {
+          console.log('🔄 Music ended unexpectedly, restarting...');
+          setTimeout(() => {
+            if (backgroundMusicRef.current && !backgroundMusicRef.current.playing()) {
+              backgroundMusicRef.current.play();
+            }
+          }, 100);
+        }
+      },
       onpause: () => {
-        setMusicPlaying(false);
+        // Only update state if user explicitly paused, not if it stopped due to error
         console.log('⏸️ Music paused');
+        // Don't automatically set musicPlaying to false - let user control it
       },
       onload: () => {
         console.log('✅ Music file loaded successfully');
