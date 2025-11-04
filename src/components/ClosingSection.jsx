@@ -92,7 +92,28 @@ const ClosingSection = ({ onMusicEnd }) => {
           transition={{ delay: 0.3, duration: 0.8 }}
         >
           <div className="photo-placeholder-large">
-            <svg width="300" height="350" viewBox="0 0 300 350">
+            <img 
+              src="/photos/m1.jpeg" 
+              alt="Family photo"
+              onError={(e) => {
+                // Fallback to placeholder if image doesn't exist
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'block';
+              }}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover',
+                borderRadius: '12px',
+                display: 'block'
+              }}
+            />
+            <svg 
+              width="300" 
+              height="350" 
+              viewBox="0 0 300 350"
+              style={{ display: 'none' }}
+            >
               <rect x="10" y="10" width="280" height="330" rx="12" fill="#FAF4EF" stroke="#800000" strokeWidth="3" strokeDasharray="6,6"/>
               <text x="150" y="185" textAnchor="middle" fill="#800000" fontSize="18" fontFamily="var(--font-primary)">
                 Family Photo Here

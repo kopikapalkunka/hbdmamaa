@@ -17,14 +17,29 @@ function App() {
 
   // Handle user interaction to start music (required for autoplay policies)
   useEffect(() => {
-    const handleUserInteraction = () => {
+    const handleUserInteraction = async () => {
       if (backgroundMusicRef.current) {
         const sound = backgroundMusicRef.current;
+        
+        // Resume audio context if suspended (required for user interaction)
+        if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
+          const audioContext = sound._sounds[0]._node.context;
+          if (audioContext && audioContext.state === 'suspended') {
+            try {
+              await audioContext.resume();
+              console.log('✅ AudioContext resumed on user interaction');
+            } catch (error) {
+              console.log('⚠️ Could not resume AudioContext:', error);
+            }
+          }
+        }
+        
         if (!sound.playing()) {
           try {
             const soundId = sound.play();
             if (soundId) {
               setMusicInitialized(true);
+              setMusicPlaying(true);
               console.log('🎵 Music started on user interaction!');
               // Remove listeners after successful start
               document.removeEventListener('click', handleUserInteraction);
@@ -32,6 +47,26 @@ function App() {
             }
           } catch (error) {
             console.log('⚠️ Could not start music:', error);
+            // Retry after a short delay
+            setTimeout(async () => {
+              try {
+                // Try to resume audio context again
+                if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
+                  const audioContext = sound._sounds[0]._node.context;
+                  if (audioContext && audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                  }
+                }
+                const retryId = sound.play();
+                if (retryId) {
+                  setMusicInitialized(true);
+                  setMusicPlaying(true);
+                  console.log('🎵 Music started on retry!');
+                }
+              } catch (retryError) {
+                console.log('⚠️ Retry failed:', retryError);
+              }
+            }, 100);
           }
         } else {
           // Already playing
@@ -83,10 +118,11 @@ function App() {
     
     const sound = new Howl({
       src: [musicPath],
-      html5: true,
+      html5: false, // Use Web Audio API instead of HTML5 for better control
       volume: 0.5,
       loop: true,
       preload: true,
+      pool: 1, // Limit audio pool to prevent exhaustion
       onplay: () => {
         setMusicPlaying(true);
         setMusicInitialized(true);
@@ -114,7 +150,8 @@ function App() {
           errorMsg.includes('user interaction') ||
           errorMsg.includes('Playback was unable to start') ||
           errorMsg.includes('autoplay') ||
-          errorMsg.includes('not allowed');
+          errorMsg.includes('not allowed') ||
+          errorMsg.includes('AudioContext');
         
         // Silently ignore autoplay restrictions - they're expected
         if (!isAutoplayRestriction && errorMsg) {

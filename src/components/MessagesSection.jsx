@@ -8,27 +8,55 @@ const MessagesSection = () => {
   const [playingId, setPlayingId] = useState(null);
   const [sounds, setSounds] = useState({});
 
-  // Sample messages - replace with actual audio clips
-  // Audio files should be placed in /public/voices/ directory
-  // Use paths like: '/voices/message1.mp3'
+  // Family messages - Audio files should be placed in /public/voices/ directory
   const messages = [
     {
       id: 1,
       name: "Ayah",
-      message: "Mama selamat ulang tahun semoga panjang umur dan sehat selalu .",
-      audioUrl: '/voices/ayah.mp3', // Place audio file in /public/voices/
+      message: "Barakallahu Fii Umrik, Istriku. Ayah bersyukur punya istri yang selalu perhatian, ceria, dan penuh energi. Semoga Allah selalu menjaga kesehatan Mama, melapangkan rezeki, dan selalu menemani ayah seumur hidup.",
+      audioUrl: '/voices/ayah.mp3',
     },
     {
       id: 2,
-      name: "Aku Adek citi",
-      message: "makasih udah nanem benih kebahagiaan ke kami semua.",
-      audioUrl: '/voices/adek.mp3', // Place audio file in /public/voices/
+      name: "Ayu",
+      message: "Selamat ulang tahun, Mama. Terima kasih sudah jadi Mama paling lucu dan paling peduli. Semoga semua doa Mama dikabulkan, dan semoga kebahagiaan selalu menemani setiap langkah Mama.",
+      audioUrl: '/voices/ayu.mp3',
     },
     {
       id: 3,
-      name: "Kakak",
-      message: "semoga mama selalu diberikan kesehatan dan kebahagiaan selalu.",
-      audioUrl: '/voices/kakak.mp3', // Place audio file in /public/voices/
+      name: "Oten",
+      message: "Barakallahu Fii Umrik, Mama. Semoga Allah selalu memberi kekuatan, kesehatan, dan dipanjangkan umurnya, bahagia selalu mamahku.",
+      audioUrl: '/voices/oten.mp3',
+    },
+    {
+      id: 4,
+      name: "Panji",
+      message: "Selamat ulang tahun, Mbok. Terima kasih atas perhatian dan nasihat yang selalu Panji ingat. Semoga Allah membalas semua kebaikan Mbok dengan umur panjang dan kebahagiaan yang tidak putus.",
+      audioUrl: '/voices/panji.mp3',
+    },
+    {
+      id: 5,
+      name: "Nibon",
+      message: "Selamat ulang tahun, Mamaa. Semoga Mama selalu diberi kesehatan, semangat yang nggak pernah habis, hati yang selalu tenang, rezeki yang berlimpah, dan semoga Allah mudahkan mama untuk mencapai impian mama, adek sayang mama, i lop yu pull.",
+      audioUrl: '/voices/nibon.mp3',
+    },
+    {
+      id: 6,
+      name: "Iyan",
+      message: "Selamat ulang tahun, Ma. Terima kasih sudah selalu mendukung dan mendoakan kami dalam setiap langkah. Semoga Mama selalu sehat, kuat, dan bahagia.",
+      audioUrl: '/voices/iyan.mp3',
+    },
+    {
+      id: 7,
+      name: "Ari",
+      message: "Selamat ulang tahun ya, Ma. Terima kasih atas perhatian dan kebaikan Mama yang nggak pernah berubah. Semoga Allah membalasnya dengan keberkahan dan kesehatan.",
+      audioUrl: '/voices/ari.mp3',
+    },
+    {
+      id: 8,
+      name: "Cucu-cucu Yangti",
+      message: "Selamat ulang tahun, Yangti! Semoga Yangti selalu sehat, panjang umur, dan tetap lucu seperti biasanya. Kami sayang Yangti!",
+      audioUrl: '/voices/cucu.mp3',
     },
   ];
 

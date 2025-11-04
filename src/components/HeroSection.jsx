@@ -122,7 +122,7 @@ const HeroSection = ({ onMusicStart }) => {
           </motion.p>
         </motion.div>
 
-        {/* Photo frame placeholder */}
+        {/* Photo frame */}
         <motion.div
           className="hero-photo-frame"
           initial={{ opacity: 0, scale: 0.8, rotateY: -10 }}
@@ -130,7 +130,28 @@ const HeroSection = ({ onMusicStart }) => {
           transition={{ delay: 1.2, duration: 1, ease: [0.34, 1.56, 0.64, 1] }}
         >
           <div className="photo-placeholder">
-            <svg width="200" height="250" viewBox="0 0 200 250">
+            <img 
+              src="/photos/m.jpeg" 
+              alt="Beautiful memories"
+              onError={(e) => {
+                // Fallback to placeholder if image doesn't exist
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'block';
+              }}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover',
+                borderRadius: '8px',
+                display: 'block'
+              }}
+            />
+            <svg 
+              width="200" 
+              height="250" 
+              viewBox="0 0 200 250"
+              style={{ display: 'none' }}
+            >
               <rect x="10" y="10" width="180" height="230" rx="8" fill="#FAF4EF" stroke="#800000" strokeWidth="2" strokeDasharray="5,5"/>
               <text x="100" y="130" textAnchor="middle" fill="#800000" fontSize="16" fontFamily="var(--font-primary)">
                 Photo Here

@@ -27,7 +27,7 @@ const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
     }
   }, [soundRef]);
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     if (!soundRef?.current) {
       // If sound isn't loaded yet, show a message
       console.log('Music is loading... Please wait a moment.');
@@ -35,6 +35,18 @@ const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
     }
 
     const sound = soundRef.current;
+    
+    // Resume audio context if suspended (required for user interaction)
+    if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
+      const audioContext = sound._sounds[0]._node.context;
+      if (audioContext && audioContext.state === 'suspended') {
+        try {
+          await audioContext.resume();
+        } catch (error) {
+          console.log('Could not resume audio context:', error);
+        }
+      }
+    }
     
     if (sound.playing()) {
       sound.pause();
@@ -51,6 +63,19 @@ const MusicPlayer = ({ soundRef, onPlay, onPause }) => {
         }
       } catch (error) {
         console.log('Error playing music:', error);
+        // Try to resume audio context if needed
+        if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
+          const audioContext = sound._sounds[0]._node.context;
+          if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+              const retryId = sound.play();
+              if (retryId) {
+                setIsPlaying(true);
+                if (onPlay) onPlay();
+              }
+            });
+          }
+        }
       }
     }
   };
