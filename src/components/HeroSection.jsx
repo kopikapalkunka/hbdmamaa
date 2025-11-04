@@ -8,9 +8,16 @@ const HeroSection = ({ onMusicStart }) => {
 
   useEffect(() => {
     // Start background music when component mounts (only once)
+    // Use a flag to prevent multiple calls even in React StrictMode
     if (onMusicStart && !musicStartedRef.current) {
       musicStartedRef.current = true;
-      onMusicStart();
+      // Use setTimeout to ensure this only runs once even with double mounting
+      const timer = setTimeout(() => {
+        if (musicStartedRef.current) {
+          onMusicStart();
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     // Parallax effect on scroll
