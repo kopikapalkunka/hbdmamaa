@@ -1,15 +1,55 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useCallback, memo } from 'react';
 import { useInView } from 'framer-motion';
 import { motion } from 'framer-motion';
 import { Howl } from 'howler';
 import './MessagesSection.css';
+
+// MessageCard component moved outside and memoized to prevent recreation on every render
+const MessageCard = memo(({ message, index, playingId, onPlayAudio }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.3 });
+
+  return (
+    <motion.div
+      ref={ref}
+      className="message-card"
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ delay: index * 0.2, duration: 0.6 }}
+    >
+      <div className="message-bubble">
+        <div className="message-header">
+          <h3 className="message-name">{message.name}</h3>
+        </div>
+        <p className="message-text">{message.message}</p>
+        <button
+          className="play-btn"
+          onClick={() => onPlayAudio(message)}
+          aria-label="Play message"
+        >
+          {playingId === message.id ? (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="6" width="4" height="12" rx="1"/>
+              <rect x="14" y="6" width="4" height="12" rx="1"/>
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          )}
+        </button>
+      </div>
+    </motion.div>
+  );
+});
 
 const MessagesSection = () => {
   const [playingId, setPlayingId] = useState(null);
   const [sounds, setSounds] = useState({});
 
   // Family messages - Audio files should be placed in /public/voices/ directory
-  const messages = [
+  // Memoize messages array to prevent recreation
+  const messages = useMemo(() => [
     {
       id: 1,
       name: "Ayah",
@@ -58,9 +98,9 @@ const MessagesSection = () => {
       message: "Selamat ulang tahun, Yangti! Semoga Yangti selalu sehat, panjang umur, dan tetap lucu seperti biasanya. Kami sayang Yangti!",
       audioUrl: '/voices/cucu.mp3',
     },
-  ];
+  ], []);
 
-  const playAudio = (message) => {
+  const playAudio = useCallback((message) => {
     // Use base path for public assets
     const basePath = import.meta.env.BASE_URL || '/';
     const audioPath = message.audioUrl ? `${basePath}${message.audioUrl.replace(/^\//, '')}` : null;
@@ -108,7 +148,7 @@ const MessagesSection = () => {
         setPlayingId(message.id);
       }
     }
-  };
+  }, [playingId, sounds]);
 
   return (
     <section className="messages-section">
@@ -118,47 +158,15 @@ const MessagesSection = () => {
         <h2 className="messages-title">Family Messages</h2>
         
         <div className="messages-grid">
-          {messages.map((message, index) => {
-            const MessageCard = ({ message, index }) => {
-              const ref = useRef(null);
-              const isInView = useInView(ref, { once: true, amount: 0.3 });
-
-              return (
-                <motion.div
-                  ref={ref}
-                  className="message-card"
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ delay: index * 0.2, duration: 0.6 }}
-                >
-                  <div className="message-bubble">
-                    <div className="message-header">
-                      <h3 className="message-name">{message.name}</h3>
-                    </div>
-                    <p className="message-text">{message.message}</p>
-                    <button
-                      className="play-btn"
-                      onClick={() => playAudio(message)}
-                      aria-label="Play message"
-                    >
-                      {playingId === message.id ? (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                          <rect x="6" y="6" width="4" height="12" rx="1"/>
-                          <rect x="14" y="6" width="4" height="12" rx="1"/>
-                        </svg>
-                      ) : (
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M8 5v14l11-7z"/>
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            };
-
-            return <MessageCard key={message.id} message={message} index={index} />;
-          })}
+          {messages.map((message, index) => (
+            <MessageCard 
+              key={message.id} 
+              message={message} 
+              index={index}
+              playingId={playingId}
+              onPlayAudio={playAudio}
+            />
+          ))}
         </div>
       </div>
     </section>

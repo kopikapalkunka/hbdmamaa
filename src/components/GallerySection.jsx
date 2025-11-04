@@ -9,9 +9,9 @@ const GallerySection = () => {
   // All photos from public/photos/ directory
   // Photos are automatically loaded from the public folder
   const galleryItems = [
-    { id: 1, caption: "Beautiful memories together", image: '/photos/m.jpeg' },
-    { id: 2, caption: "A moment of joy", image: '/photos/m1.jpeg' },
-    { id: 3, caption: "Family love", image: '/photos/m2.jpeg' },
+    { id: 1, caption: "Your smile brighter than the sun", image: '/photos/m.jpeg' },
+    { id: 2, caption: "Most prettiest woman", image: '/photos/m1.jpeg' },
+    { id: 3, caption: "Happy Mom ", image: '/photos/m2.jpeg' },
     { id: 4, caption: "Cherished times", image: '/photos/m3.jpeg' },
     { id: 5, caption: "Special moments", image: '/photos/m4.jpeg' },
     { id: 6, caption: "Precious moments", image: '/photos/m5.jpeg' },

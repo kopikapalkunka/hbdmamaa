@@ -131,7 +131,7 @@ const HeroSection = ({ onMusicStart }) => {
         >
           <div className="photo-placeholder">
             <img 
-              src="/photos/m.jpeg" 
+              src="/photos/m3.jpeg" 
               alt="Beautiful memories"
               onError={(e) => {
                 // Fallback to placeholder if image doesn't exist
