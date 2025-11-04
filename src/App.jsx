@@ -19,17 +19,25 @@ function App() {
       if (!musicInitialized && backgroundMusicRef.current) {
         const sound = backgroundMusicRef.current;
         if (!sound.playing()) {
-          sound.play();
+          const soundId = sound.play();
+          if (soundId) {
+            setMusicInitialized(true);
+            console.log('Music started on user interaction');
+          }
+        } else {
+          setMusicInitialized(true);
         }
-        setMusicInitialized(true);
         // Remove listeners after first interaction
         document.removeEventListener('click', handleUserInteraction);
         document.removeEventListener('touchstart', handleUserInteraction);
       }
     };
 
-    document.addEventListener('click', handleUserInteraction);
-    document.addEventListener('touchstart', handleUserInteraction);
+    // Only add listeners if music hasn't been initialized
+    if (!musicInitialized) {
+      document.addEventListener('click', handleUserInteraction, { once: true });
+      document.addEventListener('touchstart', handleUserInteraction, { once: true });
+    }
 
     return () => {
       document.removeEventListener('click', handleUserInteraction);
@@ -73,26 +81,25 @@ function App() {
     });
     
     // Try to play the music
+    // Howler.js play() returns a sound ID (number), not a Promise
     try {
-      const playPromise = sound.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setMusicInitialized(true);
-            console.log('Music autoplay successful');
-          })
-          .catch(error => {
-            console.log('Autoplay was prevented (normal in some browsers):', error);
-            console.log('Music will play on user interaction');
-            // Music will play when user interacts with the page
-          });
+      const soundId = sound.play();
+      if (soundId) {
+        // Sound started playing
+        setMusicInitialized(true);
+        console.log('Music autoplay successful, sound ID:', soundId);
+      } else {
+        // Play failed (likely autoplay restriction)
+        console.log('Music autoplay was prevented (normal in some browsers)');
+        console.log('Music will play on user interaction');
+        setMusicInitialized(false); // Will be set to true on first user interaction
       }
     } catch (error) {
       console.warn('Error attempting to play music:', error);
+      setMusicInitialized(false); // Will be set to true on first user interaction
     }
     
     backgroundMusicRef.current = sound;
-    setMusicInitialized(false); // Will be set to true on first user interaction
   };
 
   const handleMusicEnd = () => {
