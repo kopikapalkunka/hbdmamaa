@@ -93,7 +93,7 @@ const ClosingSection = ({ onMusicEnd }) => {
         >
           <div className="photo-placeholder-large">
             <img 
-              src="/photos/m6.jpeg" 
+              src="/photos/m7.jpeg" 
               alt="Family photo"
               onError={(e) => {
                 // Fallback to placeholder if image doesn't exist
