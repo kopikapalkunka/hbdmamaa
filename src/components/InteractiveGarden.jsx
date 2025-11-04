@@ -12,7 +12,7 @@ const InteractiveGarden = () => {
       id: 1, 
       x: 160, 
       y: 180, 
-      message: "Every smile you gave helped us grow.",
+      message: "Setiap senyummu, menumbuhkan taman dalam hati kami.",
       type: "sunflower",
       size: 1.2
     },
@@ -20,7 +20,7 @@ const InteractiveGarden = () => {
       id: 2, 
       x: 400, 
       y: 120, 
-      message: "Your love is the sunshine that nurtures us.",
+      message: "Cintamu bagaikan mentari yang menghangatkan semesta jiwa.",
       type: "rose",
       size: 1.3
     },
@@ -28,7 +28,7 @@ const InteractiveGarden = () => {
       id: 3, 
       x: 640, 
       y: 210, 
-      message: "Your kindness blooms in our hearts forever.",
+      message: "Kasih sayangmu bermekaran abadi di relung-relung cinta.",
       type: "daisy",
       size: 1.2
     },
@@ -36,7 +36,7 @@ const InteractiveGarden = () => {
       id: 4, 
       x: 120, 
       y: 420, 
-      message: "You planted seeds of happiness everywhere.",
+      message: "Engkau tanam benih bahagia di tiap langkah dunia.",
       type: "tulip",
       size: 1.5
     },
@@ -44,7 +44,7 @@ const InteractiveGarden = () => {
       id: 5, 
       x: 560, 
       y: 450, 
-      message: "Your wisdom grows like a strong tree.",
+      message: "Hikmahmu bertunas, tumbuh kokoh bak pohon kehidupan.",
       type: "spiderlily",
       size: 1.3
     },
