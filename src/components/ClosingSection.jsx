@@ -128,7 +128,7 @@ const ClosingSection = ({ onMusicEnd }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 1 }}
         >
-          Termia kasih, Mama.
+          Terima kasih, Mama.
         </motion.h2>
 
         <motion.p
@@ -137,7 +137,8 @@ const ClosingSection = ({ onMusicEnd }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.9, duration: 1 }}
         >
-          Karena sudah menjadi ibu sekaligus guru bagi anak anak mama.<br />
+          Karena sudah menjadi ibu,<br />
+          sekaligus guru bagi anak anak mama.<br />
           I love you to the moon and back
         </motion.p>
 

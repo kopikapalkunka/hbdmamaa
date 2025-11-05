@@ -8,30 +8,135 @@ import InteractiveGarden from './components/InteractiveGarden';
 import ClosingSection from './components/ClosingSection';
 import './App.css';
 
-// Global flag to prevent multiple Howl instances across remounts
+// Module-level singleton to ensure only ONE Howl instance exists
+// This persists across React remounts and prevents pool exhaustion
+let globalMusicInstance = null;
 let globalMusicInitialized = false;
+let globalMusicCallbacks = null; // Store callbacks to update React state
+
+// Singleton function to get or create music instance
+function getMusicInstance() {
+  if (globalMusicInstance) {
+    return globalMusicInstance;
+  }
+  return null;
+}
+
+function createMusicInstance(onStateChange) {
+  if (globalMusicInstance) {
+    // If instance exists, just update callbacks
+    globalMusicCallbacks = onStateChange;
+    return globalMusicInstance;
+  }
+
+  const basePath = import.meta.env.BASE_URL || '/';
+  const musicPath = `${basePath}music/backsound.mp3`.replace('//', '/');
+  
+  console.log('🎵 Creating SINGLE music instance...');
+  console.log('📁 Music path:', musicPath);
+  
+  globalMusicCallbacks = onStateChange;
+  globalMusicInitialized = true;
+  
+  globalMusicInstance = new Howl({
+    src: [musicPath],
+    html5: true,
+    volume: 0.5,
+    loop: true,
+    preload: true,
+    autoplay: true,
+    pool: 1,
+    poolSize: 1,
+    onplay: () => {
+      if (globalMusicCallbacks) {
+        globalMusicCallbacks.setPlaying(true);
+        globalMusicCallbacks.setInitialized(true);
+      }
+      console.log('✅ Background music started playing successfully!');
+    },
+    onend: () => {
+      if (globalMusicInstance && globalMusicInstance.loop()) {
+        setTimeout(() => {
+          if (globalMusicInstance && !globalMusicInstance.playing()) {
+            globalMusicInstance.play();
+          }
+        }, 100);
+      }
+    },
+    onpause: () => {
+      console.log('⏸️ Music paused (will auto-resume)');
+    },
+    onstop: () => {
+      // Will be restarted by monitoring
+    },
+    onload: () => {
+      console.log('✅ Music file loaded successfully');
+    },
+    onloaderror: (id, error) => {
+      console.error('❌ Background music file failed to load/decode:', error);
+      console.error('Tried to load from:', musicPath);
+      if (globalMusicCallbacks) {
+        globalMusicCallbacks.setPlaying(false);
+        globalMusicCallbacks.setInitialized(false);
+      }
+    },
+    onplayerror: (id, error) => {
+      const errorMsg = error?.message || error?.toString() || String(error) || '';
+      const isAutoplayRestriction = 
+        errorMsg.includes('user interaction') ||
+        errorMsg.includes('Playback was unable to start') ||
+        errorMsg.includes('autoplay') ||
+        errorMsg.includes('not allowed') ||
+        errorMsg.includes('AudioContext');
+      
+      if (!isAutoplayRestriction && errorMsg) {
+        console.log('⚠️ Playback issue:', errorMsg);
+      }
+    }
+  });
+  
+  return globalMusicInstance;
+}
 
 function App() {
   const [musicPlaying, setMusicPlaying] = useState(false);
   const [musicInitialized, setMusicInitialized] = useState(false);
-  const backgroundMusicRef = useRef(null);
   const musicLoadAttempted = useRef(false);
-  const userInteractionHandled = useRef(false); // Track if user interaction already started music
-  const musicLoadFailed = useRef(false); // Track if music file failed to load/decode
-  const wasActuallyPlaying = useRef(false); // Track if music was actually playing at some point
+  const userInteractionHandled = useRef(false);
+  const musicLoadFailed = useRef(false);
+  const wasActuallyPlaying = useRef(false);
+  
+  // Use the singleton instance
+  const backgroundMusicRef = useRef(null);
+
+  // Initialize singleton instance on mount
+  useEffect(() => {
+    if (!backgroundMusicRef.current) {
+      const instance = getMusicInstance();
+      if (instance) {
+        backgroundMusicRef.current = instance;
+        // Update callbacks to use current state setters
+        globalMusicCallbacks = {
+          setPlaying: setMusicPlaying,
+          setInitialized: setMusicInitialized
+        };
+      }
+    }
+  }, []);
 
   // Keep music playing continuously - monitor and restart if it stops unexpectedly
   // This ensures background music keeps playing no matter what
   useEffect(() => {
     // Don't monitor if music failed to load or hasn't been initialized
-    if (!backgroundMusicRef.current || !musicInitialized || musicLoadFailed.current) return;
+    const sound = getMusicInstance();
+    if (!sound || !musicInitialized || musicLoadFailed.current) return;
 
     let consecutiveRestartFailures = 0;
     const maxConsecutiveFailures = 3; // Stop trying after 3 consecutive failures
     let lastPlayingCheck = false;
 
     const checkMusicPlaying = setInterval(() => {
-      const sound = backgroundMusicRef.current;
+      const sound = getMusicInstance();
       if (!sound) return;
       
       // Check if audio is actually loaded and ready
@@ -124,10 +229,10 @@ function App() {
 
   // Auto-resume audio context on any user interaction to keep music playing
   useEffect(() => {
-    if (!backgroundMusicRef.current || !musicInitialized) return;
+    if (!musicInitialized) return;
 
     const handleAnyInteraction = async () => {
-      const sound = backgroundMusicRef.current;
+      const sound = getMusicInstance();
       if (!sound) return;
 
       // Resume audio context if suspended
@@ -165,12 +270,12 @@ function App() {
   // Handle user interaction to start music (required for autoplay policies)
   // This will start music on ANY user interaction if autoplay was blocked
   useEffect(() => {
-    if (!backgroundMusicRef.current || musicPlaying) return;
+    const sound = getMusicInstance();
+    if (!sound || musicPlaying) return;
 
     const handleUserInteraction = async () => {
-      if (musicPlaying || !backgroundMusicRef.current) return;
-      
-      const sound = backgroundMusicRef.current;
+      const sound = getMusicInstance();
+      if (!sound) return;
       
       // Resume audio context if suspended (required for user interaction)
       if (sound._sounds && sound._sounds[0] && sound._sounds[0]._node) {
@@ -223,143 +328,44 @@ function App() {
   }, [musicPlaying]);
 
   const handleMusicStart = useCallback(() => {
-    // Prevent multiple initializations - check both refs and global flag
-    if (globalMusicInitialized || musicLoadAttempted.current) {
+    // Prevent multiple initializations
+    if (musicLoadAttempted.current) {
       console.log('⏭️ Music initialization already attempted, skipping...');
       return;
     }
     
-    if (backgroundMusicRef.current) {
-      console.log('⏭️ Music already initialized (sound exists), skipping...');
-      // Check if existing sound is valid
-      const existingSound = backgroundMusicRef.current;
-      try {
-        const state = existingSound.state();
-        if (state === 'loaded' || state === 'loading') {
-          return; // Sound is valid, don't recreate
-        }
-      } catch (e) {
-        // Sound is invalid, clean up
-      }
-      try {
-        existingSound.unload();
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-      backgroundMusicRef.current = null;
+    // Check if singleton instance already exists
+    const existingInstance = getMusicInstance();
+    if (existingInstance) {
+      console.log('⏭️ Music instance already exists, reusing...');
+      backgroundMusicRef.current = existingInstance;
+      // Update callbacks
+      globalMusicCallbacks = {
+        setPlaying: setMusicPlaying,
+        setInitialized: setMusicInitialized
+      };
+      musicLoadAttempted.current = true;
+      return;
     }
     
-    // Set flags immediately to prevent race conditions
-    globalMusicInitialized = true;
+    // Set flag immediately to prevent race conditions
     musicLoadAttempted.current = true;
-    console.log('🎵 Starting music initialization (first time)...');
     
-    // Clean up any existing sound instance before creating a new one
-    if (backgroundMusicRef.current) {
-      try {
-        backgroundMusicRef.current.unload();
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-      backgroundMusicRef.current = null;
-    }
-    
-    // Initialize background music with backsound.mp3
-    // Use public path so it works in both development and production
-    const basePath = import.meta.env.BASE_URL || '/';
-    const musicPath = `${basePath}music/backsound.mp3`.replace('//', '/');
-    
-    console.log('🎵 Initializing background music...');
-    console.log('📁 Music path:', musicPath);
-    console.log('🌐 Base URL:', basePath);
-    console.log('🔗 Full URL:', window.location.origin + musicPath);
-    
-    const sound = new Howl({
-      src: [musicPath],
-      html5: true, // Use HTML5 audio as fallback - better compatibility for MP3 files
-      volume: 0.5,
-      loop: true,
-      preload: true,
-      autoplay: true, // Try to auto-play
-      pool: 1, // Limit audio pool to prevent exhaustion
-      poolSize: 1, // Explicitly set pool size to 1
-      onplay: () => {
-        setMusicPlaying(true);
-        setMusicInitialized(true);
-        wasActuallyPlaying.current = true; // Mark that music was actually playing
-        userInteractionHandled.current = true; // Mark as handled when music starts
-        console.log('✅ Background music started playing successfully!');
-      },
-      onend: () => {
-        // Music ended - restart it immediately (shouldn't happen with loop, but safety)
-        if (backgroundMusicRef.current && backgroundMusicRef.current.loop()) {
-          console.log('🔄 Music ended unexpectedly, restarting...');
-          setTimeout(() => {
-            if (backgroundMusicRef.current && !backgroundMusicRef.current.playing()) {
-              backgroundMusicRef.current.play();
-            }
-          }, 100);
-        }
-      },
-      onpause: () => {
-        // Don't update state - keep musicPlaying true so monitoring can restart it
-        // This ensures background music continues even if browser pauses it
-        console.log('⏸️ Music paused (will auto-resume)');
-      },
-      onstop: () => {
-        // If music stops, don't update state - monitoring will restart it
-        // Only log if it was actually playing before
-        if (wasActuallyPlaying.current) {
-          // Don't log - will be restarted silently
-        }
-      },
-      onload: () => {
-        console.log('✅ Music file loaded successfully');
-        musicLoadFailed.current = false; // Mark as successfully loaded
-      },
-      onloaderror: (id, error) => {
-        console.error('❌ Background music file failed to load/decode:', error);
-        console.error('Tried to load from:', musicPath);
-        console.error('Full URL would be:', window.location.origin + musicPath);
-        console.error('⚠️ Please check if backsound.mp3 exists and is a valid MP3 audio file');
-        console.error('💡 The file might be corrupted or in an unsupported format');
-        console.error('💡 Try re-encoding the file as MP3 or check the file in an audio player');
-        setMusicPlaying(false);
-        setMusicInitialized(false);
-        musicLoadFailed.current = true; // Mark as failed to prevent restart loop
-        musicLoadAttempted.current = false; // Allow retry
-      },
-      onplayerror: (id, error) => {
-        // Don't log autoplay restrictions as errors - this is normal browser behavior
-        // Autoplay is blocked, music will play on user interaction
-        const errorMsg = error?.message || error?.toString() || String(error) || '';
-        const isAutoplayRestriction = 
-          errorMsg.includes('user interaction') ||
-          errorMsg.includes('Playback was unable to start') ||
-          errorMsg.includes('autoplay') ||
-          errorMsg.includes('not allowed') ||
-          errorMsg.includes('AudioContext');
-        
-        // Silently ignore autoplay restrictions - they're expected
-        if (!isAutoplayRestriction && errorMsg) {
-          console.log('⚠️ Playback issue:', errorMsg);
-        }
-        // Otherwise, don't log anything - it's normal
-      }
+    // Create singleton instance
+    const sound = createMusicInstance({
+      setPlaying: setMusicPlaying,
+      setInitialized: setMusicInitialized
     });
     
-    // Store the sound reference
     backgroundMusicRef.current = sound;
+    wasActuallyPlaying.current = false;
     
-    // Try to play the music (will likely fail due to autoplay restrictions)
-    // Howler.js play() returns a sound ID (number), not a Promise
     try {
       const soundId = sound.play();
       if (soundId) {
-        // Sound started playing (autoplay worked!)
         console.log('🎉 Music autoplay successful, sound ID:', soundId);
+        wasActuallyPlaying.current = true;
       } else {
-        // Play failed (likely autoplay restriction - this is normal)
         console.log('📢 Music autoplay was prevented (normal in browsers)');
         console.log('👆 Music will play on first user click/touch');
       }
@@ -367,11 +373,11 @@ function App() {
       console.log('📢 Music autoplay prevented:', error.message);
       console.log('👆 Music will play on first user click/touch');
     }
-  }, []); // Empty deps - this function should never change
+  }, []);
 
   const handleMusicEnd = () => {
-    if (backgroundMusicRef.current) {
-      const sound = backgroundMusicRef.current;
+    const sound = getMusicInstance();
+    if (sound) {
       const interval = 50;
       const duration = 2000;
       const steps = duration / interval;
@@ -384,22 +390,11 @@ function App() {
         } else {
           clearInterval(fadeInterval);
           sound.stop();
-          sound.unload();
           setMusicPlaying(false);
         }
       }, interval);
     }
   };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (backgroundMusicRef.current) {
-        backgroundMusicRef.current.stop();
-        backgroundMusicRef.current.unload();
-      }
-    };
-  }, []);
 
   return (
     <div className="app">
